@@ -180,15 +180,14 @@ az group delete \
 
 > **Note:** Do not execute the cleanup command against a resource group containing production or shared resources.
 
-Author
-
-Manzoor Nayeem
+**Author**
+**Manzoor Nayeem**
 
 This repository was created as a hands-on Azure Infrastructure as Code laboratory to demonstrate practical experience with Microsoft Azure, Terraform, cloud networking, compute, automation, and infrastructure deployment.
 
 The project is focused on continuous learning and experimentation with Azure architecture, Infrastructure as Code, automation, security, and DevOps practices.
 
-Disclaimer
+**Disclaimer**
 
 This repository is intended for educational, laboratory, and demonstration purposes.
 
