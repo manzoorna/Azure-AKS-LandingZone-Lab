@@ -1,0 +1,124 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: AKS-LAB
+
+stages:
+
+#--------------------------------------------------
+# Stage 1
+#--------------------------------------------------
+
+- stage: Validate
+
+  displayName: Validate Bicep
+
+  jobs:
+
+  - job: Validate
+
+    steps:
+
+    - checkout: self
+
+    - task: AzureCLI@2
+
+      displayName: Install Bicep
+
+      inputs:
+
+        azureSubscription: sc-aks-lab
+
+        scriptType: bash
+
+        scriptLocation: inlineScript
+
+        inlineScript: |
+
+          az bicep install
+
+          az bicep version
+
+    - task: AzureCLI@2
+
+      displayName: Build Bicep
+
+      inputs:
+
+        azureSubscription: sc-aks-lab
+
+        scriptType: bash
+
+        scriptLocation: inlineScript
+
+        inlineScript: |
+
+          az bicep build --file bicep/main.bicep
+
+    - task: AzureCLI@2
+
+      displayName: Validate Deployment
+
+      inputs:
+
+        azureSubscription: sc-aks-lab
+
+        scriptType: bash
+
+        scriptLocation: inlineScript
+
+        inlineScript: |
+
+          az deployment group validate \
+            --resource-group $(resourceGroup) \
+            --template-file bicep/main.bicep \
+            --parameters @parameters/dev.parameters.json
+
+#--------------------------------------------------
+# Stage 2
+#--------------------------------------------------
+
+- stage: Deploy
+
+  dependsOn: Validate
+
+  condition: succeeded()
+
+  jobs:
+
+  - deployment: DeployAKS
+
+    environment: Lab
+
+    strategy:
+
+      runOnce:
+
+        deploy:
+
+          steps:
+
+          - checkout: self
+
+          - task: AzureCLI@2
+
+            displayName: Deploy Infrastructure
+
+            inputs:
+
+              azureSubscription: sc-aks-lab
+
+              scriptType: bash
+
+              scriptLocation: inlineScript
+
+              inlineScript: |
+
+                az deployment group create \
+                  --resource-group $(resourceGroup) \
+                  --template-file bicep/main.bicep \
+                  --parameters @parameters/dev.parameters.json
